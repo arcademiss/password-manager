@@ -49,5 +49,4 @@ def send_to_server(auth_key, username, req_type):
     return response
 
 
-def check_password(password):
-    return None
+

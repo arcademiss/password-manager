@@ -38,7 +38,7 @@ class MainFrame(wx.Frame):
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=_(u"Vaulty"), pos=wx.DefaultPosition,
-                          size=wx.Size(500, 300), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+                          size=wx.Size(500, 300), style=wx.DEFAULT_FRAME_STYLE)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
@@ -60,7 +60,6 @@ class MainFrame(wx.Frame):
 
         self.m_textCtrl5_LoginUsername = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                                      wx.DefaultSize, 0)
-        self.m_textCtrl5_LoginUsername.SetToolTip(_(u"Hello\n"))
 
         bSizer2.Add(self.m_textCtrl5_LoginUsername, 0, wx.ALL, 5)
 
@@ -71,7 +70,7 @@ class MainFrame(wx.Frame):
         bSizer2.Add(self.m_staticText4_Password, 0, wx.ALL, 5)
 
         self.m_textCtrl6_LoginPassword = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                                     wx.DefaultSize, 0)
+                                                     wx.DefaultSize, 0|wx.TE_PASSWORD)
         bSizer2.Add(self.m_textCtrl6_LoginPassword, 0, wx.ALL, 5)
 
         bSizer3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -141,7 +140,13 @@ class MainFrame(wx.Frame):
             wx.MessageDialog(None, "You must fill in both fields!", "ERROR!", wx.ICON_ERROR).ShowModal()
             return
 
-        check_password(password)
+
+
+        if check_password(password)[0] < 3:
+            wx.MessageDialog(None, "Weak password!\n"+ check_password(password)[1][0], "ERROR!",
+                             wx.ICON_ERROR).ShowModal()
+            return
+
 
         auth_key, _, _ = create_creds(username, password, CLIENT_SECRET, SALT_SECRET)
 
