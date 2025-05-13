@@ -1,0 +1,72 @@
+from typing import Annotated
+import psycopg
+from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+import os
+from hashlib import pbkdf2_hmac as pbkdf2
+
+import uuid
+
+from models import UserRegistration, UserLogin
+
+load_dotenv()
+SERVER_SECRET = os.getenv('SERVER_SECRET')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('db_name')
+DB_PASSWORD = os.getenv('db_password')
+DB_USER = os.getenv('db_user')
+DB_CONNECT_STR = f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} connect_timeout=10 password={DB_PASSWORD} " \
+                 f"user={DB_USER} "
+
+app = FastAPI()
+
+
+def hash_password(password: str, salt: bytes) -> str:
+    return pbkdf2('sha256', password.encode('utf-8'), salt, 600_000, dklen=32).hex()
+
+
+@app.post("/register")
+async def register_user(user: UserRegistration):
+    with psycopg.connect(DB_CONNECT_STR) as conn:
+        with conn.cursor() as curr:
+            # Check if username exists
+            curr.execute("SELECT username FROM users WHERE username = %s", (user.username,))
+            if curr.fetchone():
+                raise HTTPException(status_code=400, detail="Username already exists")
+
+            # Generate salt and hash
+            salt = os.urandom(16)  # 16-byte salt
+            hashed_password = hash_password(user.password, salt)
+
+            # Insert into DB
+            user_uuid = uuid.uuid4()
+            curr.execute(
+                "INSERT INTO users (uuid, username, hashed_password, salt) VALUES (%s, %s, %s, %s)",
+                (user_uuid, user.username, hashed_password, salt.hex())
+            )
+            conn.commit()
+            return {"status": "User created"}
+
+
+@app.post('/login')
+async def login_user(user: UserLogin):
+    with psycopg.connect(DB_CONNECT_STR) as conn:
+        with conn.cursor() as curr:
+            curr.execute("""
+                SELECT uuid, hashed_password, salt FROM users WHERE username = %s
+            """, (user.username,))
+            result = curr.fetchone()
+
+            if not result:
+                raise HTTPException(status_code=401, detail="Invalid Credentials")
+
+            user_uuid, hashed_password, salt_hex = result
+            salt = bytes.fromhex(salt_hex)  # Correctly decode hex string to bytes
+
+            user_pass_hash = hash_password(user.password, salt)
+            if user_pass_hash == hashed_password:
+                return {"status": "success"}
+            else:
+                raise HTTPException(status_code=401, detail="Invalid Credentials")
+
