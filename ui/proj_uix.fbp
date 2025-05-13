@@ -31,7 +31,7 @@
     <property name="relative_path">1</property>
     <property name="use_microsoft_bom">0</property>
     <property name="use_native_eol">0</property>
-    <object class="Frame" expanded="false">
+    <object class="Frame" expanded="true">
       <property name="aui_managed">0</property>
       <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
       <property name="bg"></property>
@@ -58,9 +58,9 @@
       <property name="two_step_creation">0</property>
       <property name="window_extra_style"></property>
       <property name="window_name"></property>
-      <property name="window_style">wxTAB_TRAVERSAL</property>
+      <property name="window_style"></property>
       <property name="xrc_skip_sizer">1</property>
-      <object class="wxBoxSizer" expanded="false">
+      <object class="wxBoxSizer" expanded="true">
         <property name="minimum_size"></property>
         <property name="name">bSizer2</property>
         <property name="orient">wxVERTICAL</property>
@@ -251,7 +251,7 @@
             <property name="value"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
-            <property name="window_style"></property>
+            <property name="window_style">wxTAB_TRAVERSAL</property>
           </object>
         </object>
         <object class="sizeritem" expanded="false">
@@ -378,7 +378,7 @@
             <property name="value"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
-            <property name="window_style"></property>
+            <property name="window_style">wxTAB_TRAVERSAL</property>
           </object>
         </object>
         <object class="sizeritem" expanded="false">
@@ -544,7 +544,7 @@
         </object>
       </object>
     </object>
-    <object class="Frame" expanded="true">
+    <object class="Frame" expanded="false">
       <property name="aui_managed">0</property>
       <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
       <property name="bg"></property>
@@ -574,12 +574,12 @@
       <property name="window_style">wxTAB_TRAVERSAL</property>
       <property name="xrc_skip_sizer">1</property>
       <event name="OnChar">copy_cmd</event>
-      <object class="wxBoxSizer" expanded="true">
+      <object class="wxBoxSizer" expanded="false">
         <property name="minimum_size"></property>
         <property name="name">bSizer5</property>
         <property name="orient">wxVERTICAL</property>
         <property name="permission">none</property>
-        <object class="sizeritem" expanded="true">
+        <object class="sizeritem" expanded="false">
           <property name="border">5</property>
           <property name="flag">wxEXPAND</property>
           <property name="proportion">0</property>
@@ -666,11 +666,11 @@
             </object>
           </object>
         </object>
-        <object class="sizeritem" expanded="true">
+        <object class="sizeritem" expanded="false">
           <property name="border">5</property>
           <property name="flag">wxALL|wxEXPAND</property>
           <property name="proportion">1</property>
-          <object class="wxDataViewListCtrl" expanded="true">
+          <object class="wxDataViewListCtrl" expanded="false">
             <property name="bg">wxSYS_COLOUR_ACTIVECAPTION</property>
             <property name="context_help"></property>
             <property name="context_menu">1</property>
@@ -695,20 +695,20 @@
             <event name="OnDataViewListCtrlSelectionChanged">print_Sel</event>
           </object>
         </object>
-        <object class="sizeritem" expanded="true">
+        <object class="sizeritem" expanded="false">
           <property name="border">5</property>
           <property name="flag">wxEXPAND</property>
           <property name="proportion">0</property>
-          <object class="wxBoxSizer" expanded="true">
+          <object class="wxBoxSizer" expanded="false">
             <property name="minimum_size"></property>
             <property name="name">bSizer51</property>
             <property name="orient">wxHORIZONTAL</property>
             <property name="permission">none</property>
-            <object class="sizeritem" expanded="true">
+            <object class="sizeritem" expanded="false">
               <property name="border">5</property>
               <property name="flag">wxALL</property>
               <property name="proportion">0</property>
-              <object class="wxStaticText" expanded="true">
+              <object class="wxStaticText" expanded="false">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
@@ -766,21 +766,21 @@
                 <property name="wrap">-1</property>
               </object>
             </object>
-            <object class="sizeritem" expanded="true">
+            <object class="sizeritem" expanded="false">
               <property name="border">5</property>
               <property name="flag">wxEXPAND</property>
               <property name="proportion">1</property>
-              <object class="spacer" expanded="true">
+              <object class="spacer" expanded="false">
                 <property name="height">0</property>
                 <property name="permission">protected</property>
                 <property name="width">0</property>
               </object>
             </object>
-            <object class="sizeritem" expanded="true">
+            <object class="sizeritem" expanded="false">
               <property name="border">5</property>
               <property name="flag">wxALL</property>
               <property name="proportion">0</property>
-              <object class="wxGauge" expanded="true">
+              <object class="wxGauge" expanded="false">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
