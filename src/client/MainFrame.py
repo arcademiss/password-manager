@@ -143,8 +143,13 @@ class MainFrame(wx.Frame):
 
 
         if check_password(password)[0] < 3:
-            wx.MessageDialog(None, "Weak password!\n"+ check_password(password)[1][0], "ERROR!",
+            print(check_password(password))
+            if check_password(password)[1][0]:
+                wx.MessageDialog(None, "Weak password!\n"+ check_password(password)[1][0], "ERROR!",
                              wx.ICON_ERROR).ShowModal()
+            else:
+                wx.MessageDialog(None, "Weak password!\n" + check_password(password)[1][0], "ERROR!",
+                                 wx.ICON_ERROR).ShowModal()
             return
 
 

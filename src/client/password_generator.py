@@ -41,7 +41,8 @@ def check_password(password):
     # print(f"Password Score: {result['score']}/4")
     # print(f"Crack Time: {result['crack_times_display']['offline_slow_hashing_1e4_per_second']}")
     # print(f"Feedback: {result['feedback']['suggestions']}")
-    return result['score']/4, result['feedback']['suggestions']
+    return result['score'], result['feedback']['suggestions']
+
 
 
 

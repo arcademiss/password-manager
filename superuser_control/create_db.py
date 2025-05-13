@@ -7,7 +7,9 @@ with psycopg.connect("host=localhost port=5432 dbname=password_appdb connect_tim
     uuid UUID PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     hashed_password TEXT NOT NULL,
-    salt TEXT NOT NULL
+    salt TEXT NOT NULL,
+    encryption_nonce BYTEA NOT NULL,
+    encryption_tag BYTEA NOT NULL
 );
 
         """
