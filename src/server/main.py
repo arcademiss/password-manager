@@ -7,6 +7,7 @@ from hashlib import pbkdf2_hmac as pbkdf2
 from Crypto.Cipher import AES
 import uvicorn
 import uuid
+from utils import create_access_token
 
 from models import UserRegistration, UserLogin
 
@@ -84,7 +85,9 @@ async def login_user(user: UserLogin):
             decrypted_password = decrypt_password(hashed_password, nonce).hex()
 
             if user_pass_hash == decrypted_password:
-                return {"status": "success"}
+                return {
+                    "access_token": create_access_token(user.username)
+                }
             else:
                 raise HTTPException(status_code=401, detail="Invalid Credentials")
 

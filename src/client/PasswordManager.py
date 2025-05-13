@@ -168,7 +168,7 @@ class PasswordManager(wx.Frame):
         password = self.m_dataViewListCtrl2.GetTextValue(row_idx, 2)
         last_modified = self.m_dataViewListCtrl2.GetTextValue(row_idx, 3)
         self.cred = Credentials(title, username, password, last_modified)
-        print(self.cred)
+
 
     def on_close(self, event):
         if self.main_frame:
