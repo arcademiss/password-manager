@@ -14,7 +14,7 @@ from src.client.Credentials import Credentials
 import gettext
 import pyperclip
 from threading import Timer
-from client_control_functions import get_credentials
+from client_control_functions import get_credentials, decrypt_field
 
 _ = gettext.gettext
 
@@ -60,6 +60,7 @@ class PasswordManager(wx.Frame):
 
         self.m_dataViewListCtrl2.AppendTextColumn("Service", width=200)
         self.m_dataViewListCtrl2.AppendTextColumn("Username", width=180)
+        self.m_dataViewListCtrl2.AppendTextColumn("Password", width=180)
         self.m_dataViewListCtrl2.AppendTextColumn("Last Modified", width=150)
 
         self.populate_grid(self.token, self.user)
@@ -183,7 +184,13 @@ class PasswordManager(wx.Frame):
             cred_unpacked = credentials.json()['credentials']
             for cred in cred_unpacked:
 
-                self.m_dataViewListCtrl2.AppendItem(cred)
+                service = cred[2]
+                username = decrypt_field(cred[3])
+                password = cred[4]
+                last_modified = cred[6]
+
+
+                self.m_dataViewListCtrl2.AppendItem([service, username, password, last_modified])
 
 
 

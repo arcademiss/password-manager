@@ -2,6 +2,7 @@ import hashlib
 from hashlib import pbkdf2_hmac as pbkdf2
 import requests
 from password_generator import check_password
+from Crypto.Cipher import AES
 
 
 def create_vault_key(username, password, secret_key, salt):
@@ -67,3 +68,7 @@ def get_credentials(token: str, user: str):
     )
 
     return response
+
+def decrypt_field(cred: str):
+
+    return cred
