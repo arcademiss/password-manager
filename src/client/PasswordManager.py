@@ -14,13 +14,14 @@ from src.client.Credentials import Credentials
 import gettext
 import pyperclip
 from threading import Timer
-from client_control_functions import get_credentials, decrypt_field
+from client_control_functions import get_credentials, decrypt_field, derive_aes_key
 from Credentials import Credentials
 from dotenv import load_dotenv
 import os
 load_dotenv()
 
 KEY = os.getenv("KEY")
+SALT = os.getenv("SALT_SECRET")
 
 _ = gettext.gettext
 
@@ -31,7 +32,7 @@ _ = gettext.gettext
 
 class PasswordManager(wx.Frame):
 
-    def __init__(self, parent, main_frame, user):
+    def __init__(self, parent, main_frame, user, password):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
                           size=wx.Size(620, 513), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
@@ -43,6 +44,7 @@ class PasswordManager(wx.Frame):
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.token = main_frame.token
         self.cred_list = []
+        self.password = password
 
         bSizer5 = wx.BoxSizer(wx.VERTICAL)
 
@@ -188,7 +190,8 @@ class PasswordManager(wx.Frame):
         credentials = get_credentials(token, user)
         if credentials.status_code == 200:
             cred_unpacked = credentials.json()['credentials']
-            key = KEY
+
+            key= derive_aes_key(self.password, KEY, bytes.fromhex(SALT))
             for cred in cred_unpacked:
                 nonce = cred[5]
                 service = cred[2]

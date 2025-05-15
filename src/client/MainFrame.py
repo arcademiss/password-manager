@@ -132,7 +132,7 @@ class MainFrame(wx.Frame):
             self.m_textCtrl6_LoginPassword.Clear()
             data_payload = json.loads(response.content.decode('utf-8'))
             self.token = data_payload['access_token']
-            pwd = PasswordManager(parent=None, main_frame=self, user=username)
+            pwd = PasswordManager(parent=None, main_frame=self, user=username, password=password)
             pwd.Show()
             self.Hide()
 

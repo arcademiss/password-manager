@@ -69,9 +69,19 @@ def get_credentials(token: str, user: str):
 
     return response
 
-def decrypt_field(cred: str, nonce: str, key: str):
+def decrypt_field(cred: str, nonce: str, key: bytes):
     cred_bin = bytes.fromhex(cred)
     nonce_bin = bytes.fromhex(nonce)
-    key_bin = bytes.fromhex(key)
-    cipher = AES.new(key_bin, AES.MODE_EAX, nonce=nonce_bin)
+    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce_bin)
     return cipher.decrypt(cred_bin)
+
+
+def derive_aes_key(master_password: str, client_key: str, salt: bytes) -> bytes:
+    combined = (master_password + client_key).encode()
+    return pbkdf2(
+        'sha256',
+        combined,
+        salt,
+        600_000,        # High iteration count
+        dklen=32        # 256 bits for AES-256
+    )
