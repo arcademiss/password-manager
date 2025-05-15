@@ -1,14 +1,18 @@
-from typing import Annotated
 import psycopg
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
 from hashlib import pbkdf2_hmac as pbkdf2
 from Crypto.Cipher import AES
-import uvicorn
 import uuid
+from fastapi import Depends, HTTPException, Header
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from src.server.utils import JWT_SECRET_KEY
+from utils import create_access_token
 
 from models import UserRegistration, UserLogin
+from jose import jwt, JWTError
 
 load_dotenv()
 SERVER_SECRET = os.getenv('SERVER_SECRET')
@@ -20,7 +24,11 @@ DB_USER = os.getenv('db_user')
 DB_CONNECT_STR = f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} connect_timeout=10 password={DB_PASSWORD} " \
                  f"user={DB_USER} "
 
+
+
 app = FastAPI()
+
+security = HTTPBearer()
 
 
 def hash_password(password: str, salt: bytes) -> str:
@@ -49,7 +57,7 @@ async def register_user(user: UserRegistration):
             # Generate salt and hash
             salt = os.urandom(16)  # 16-byte salt
             hashed_password = hash_password(user.password, salt)
-            # todo: encrypt hashed password
+
 
             encrypted_password, nonce, tag = encrypt_password(hashed_password)
 
@@ -84,9 +92,67 @@ async def login_user(user: UserLogin):
             decrypted_password = decrypt_password(hashed_password, nonce).hex()
 
             if user_pass_hash == decrypted_password:
-                return {"status": "success"}
+                data = {
+                    "info": "user login",
+                    "user": user.username,
+                }
+                return {
+                    "access_token": create_access_token(data)
+                }
             else:
                 raise HTTPException(status_code=401, detail="Invalid Credentials")
 
 
 
+
+
+
+@app.get('/Cred')
+async def get_cred(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user: str = None
+):
+    print("Request received!")  # Debugging
+    try:
+        token = credentials.credentials
+        print("Token:", token)  # Debugging
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+        print("Payload:", payload)  # Debugging
+
+        if payload.get("user") != user:
+            print("User mismatch!")  # Debugging
+            raise HTTPException(status_code=403, detail="Not authorized for this user")
+
+        with psycopg.connect(DB_CONNECT_STR) as conn:
+            with conn.cursor() as curr:
+                curr.execute("SELECT uuid FROM users WHERE username = %s", (user,))
+                uuid_result = curr.fetchone()
+                print("UUID Result:", uuid_result)  # Debugging
+
+                if not uuid_result:
+                    raise HTTPException(status_code=404, detail="User not found")
+
+                uuid_id = uuid_result[0]
+                curr.execute("SELECT * FROM credentials WHERE user_uuid = %s", (uuid_id,))
+                credentials = curr.fetchall()
+                print("Credentials:", credentials)  # Debugging
+
+                return {"credentials": credentials}
+
+    except JWTError as e:
+        print("JWT Error:", e)  # Debugging
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        print("Unexpected Error:", e)  # Debugging
+        raise
+
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

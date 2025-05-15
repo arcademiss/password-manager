@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 ###########################################################################
 ## Python code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
@@ -13,7 +14,7 @@ import wx.xrc
 import gettext
 import os
 
-from src.client.client_control_functions import create_creds, send_to_server, check_password
+from src.client.client_control_functions import create_creds, send_to_server, check_password, get_credentials
 from hashlib import pbkdf2_hmac as pbkdf2
 from dotenv import load_dotenv
 from PasswordManager import PasswordManager
@@ -41,6 +42,7 @@ class MainFrame(wx.Frame):
                           size=wx.Size(500, 300), style=wx.DEFAULT_FRAME_STYLE)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+        self.token = None
 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
@@ -109,7 +111,7 @@ class MainFrame(wx.Frame):
 
         auth_key, _, _ = create_creds(username, password, CLIENT_SECRET, SALT_SECRET)
 
-        # todo: send to server and receive vault and begin decryption
+
 
 
         try:
@@ -118,18 +120,25 @@ class MainFrame(wx.Frame):
             wx.MessageDialog(None, "Fatal Error!", "ERROR!", wx.OK).ShowModal()
             response = 0
 
-        if response.status_code == 200:
-            wx.MessageDialog(None, "User authenticated.", "Info", wx.OK).ShowModal()
-            self.m_textCtrl5_LoginUsername.Clear()
-            self.m_textCtrl6_LoginPassword.Clear()
-            pwd = PasswordManager(parent=None, main_frame=self)
-            pwd.Show()
-            self.Hide()
-
-        elif response.status_code == 401:
+        if response.status_code == 401:
             wx.MessageDialog(None, "Wrong password or username!", "Error", wx.ICON_ERROR).ShowModal()
             self.m_textCtrl5_LoginUsername.Clear()
             self.m_textCtrl6_LoginPassword.Clear()
+
+        elif response.status_code == 200:
+
+            wx.MessageDialog(None, "User authenticated.", "Info", wx.OK).ShowModal()
+            self.m_textCtrl5_LoginUsername.Clear()
+            self.m_textCtrl6_LoginPassword.Clear()
+            data_payload = json.loads(response.content.decode('utf-8'))
+            self.token = data_payload['access_token']
+            pwd = PasswordManager(parent=None, main_frame=self, user=username)
+            pwd.Show()
+            self.Hide()
+
+
+
+
 
     def register_event(self, event):
 
@@ -143,7 +152,6 @@ class MainFrame(wx.Frame):
 
 
         if check_password(password)[0] < 3:
-            print(check_password(password))
             if check_password(password)[1][0]:
                 wx.MessageDialog(None, "Weak password!\n"+ check_password(password)[1][0], "ERROR!",
                              wx.ICON_ERROR).ShowModal()
@@ -169,4 +177,6 @@ class MainFrame(wx.Frame):
             wx.MessageDialog(None, "User already exists!", "Error", wx.ICON_ERROR).ShowModal()
             self.m_textCtrl5_LoginUsername.Clear()
             self.m_textCtrl6_LoginPassword.Clear()
+
+
 

@@ -49,4 +49,21 @@ def send_to_server(auth_key, username, req_type):
     return response
 
 
+import requests
 
+
+def get_credentials(token: str, user: str):
+    url = 'http://127.0.0.1:8000/Cred'
+    headers = {
+        'accept': 'application/json',
+        'Authorization': f'Bearer {token}'  # JWT in the correct header
+    }
+    params = {'user': user}  # Send user as a query parameter
+
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params  # GET requests should use params, not json
+    )
+
+    return response
