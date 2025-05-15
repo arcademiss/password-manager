@@ -69,6 +69,9 @@ def get_credentials(token: str, user: str):
 
     return response
 
-def decrypt_field(cred: str):
-
-    return cred
+def decrypt_field(cred: str, nonce: str, key: str):
+    cred_bin = bytes.fromhex(cred)
+    nonce_bin = bytes.fromhex(nonce)
+    key_bin = bytes.fromhex(key)
+    cipher = AES.new(key_bin, AES.MODE_EAX, nonce=nonce_bin)
+    return cipher.decrypt(cred_bin)

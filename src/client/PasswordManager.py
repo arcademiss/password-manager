@@ -15,6 +15,12 @@ import gettext
 import pyperclip
 from threading import Timer
 from client_control_functions import get_credentials, decrypt_field
+from Credentials import Credentials
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+KEY = os.getenv("KEY")
 
 _ = gettext.gettext
 
@@ -36,6 +42,7 @@ class PasswordManager(wx.Frame):
         self.user = user
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.token = main_frame.token
+        self.cred_list = []
 
         bSizer5 = wx.BoxSizer(wx.VERTICAL)
 
@@ -60,7 +67,6 @@ class PasswordManager(wx.Frame):
 
         self.m_dataViewListCtrl2.AppendTextColumn("Service", width=200)
         self.m_dataViewListCtrl2.AppendTextColumn("Username", width=180)
-        self.m_dataViewListCtrl2.AppendTextColumn("Password", width=180)
         self.m_dataViewListCtrl2.AppendTextColumn("Last Modified", width=150)
 
         self.populate_grid(self.token, self.user)
@@ -182,15 +188,21 @@ class PasswordManager(wx.Frame):
         credentials = get_credentials(token, user)
         if credentials.status_code == 200:
             cred_unpacked = credentials.json()['credentials']
+            key = KEY
             for cred in cred_unpacked:
-
+                nonce = cred[5]
                 service = cred[2]
-                username = decrypt_field(cred[3])
+                username = decrypt_field(cred[3], nonce, key).decode('utf-8')
                 password = cred[4]
                 last_modified = cred[6]
+                credential = Credentials(service, username, password, last_modified, nonce)
 
 
-                self.m_dataViewListCtrl2.AppendItem([service, username, password, last_modified])
+                self.m_dataViewListCtrl2.AppendItem([credential.get_title(), credential.get_username(),
+                                                      credential.get_last_modified()])
+
+                self.cred_list.append(credential)
+
 
 
 

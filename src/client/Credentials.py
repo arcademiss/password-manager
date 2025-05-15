@@ -1,9 +1,10 @@
 class Credentials:
-    def __init__(self, title, username, password, last_modified):
+    def __init__(self, title, username, password, last_modified, nonce):
         self.title = title
         self.username = username
         self.password = password
         self.last_modified = last_modified
+        self.nonce = nonce
 
     def set_username(self, username):
         self.username = username
