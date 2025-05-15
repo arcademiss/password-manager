@@ -14,6 +14,7 @@ from src.client.Credentials import Credentials
 import gettext
 import pyperclip
 from threading import Timer
+from client_control_functions import get_credentials
 
 _ = gettext.gettext
 
@@ -24,16 +25,17 @@ _ = gettext.gettext
 
 class PasswordManager(wx.Frame):
 
-    def __init__(self, parent, main_frame):
+    def __init__(self, parent, main_frame, user):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
                           size=wx.Size(620, 513), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.cred = None
-        self.cred = None
         self.timer = None
         self.gauge_timer = None
         self.main_frame = main_frame
+        self.user = user
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+        self.token = main_frame.token
 
         bSizer5 = wx.BoxSizer(wx.VERTICAL)
 
@@ -58,10 +60,9 @@ class PasswordManager(wx.Frame):
 
         self.m_dataViewListCtrl2.AppendTextColumn("Service", width=200)
         self.m_dataViewListCtrl2.AppendTextColumn("Username", width=180)
-        self.m_dataViewListCtrl2.AppendTextColumn("Password", width=150)
         self.m_dataViewListCtrl2.AppendTextColumn("Last Modified", width=150)
 
-        self.populate_sample_data()
+        self.populate_grid(self.token, self.user)
         bSizer5.Add(self.m_dataViewListCtrl2, 1, wx.EXPAND | wx.ALL, 5)
 
         self.m_staticText4 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
@@ -94,29 +95,29 @@ class PasswordManager(wx.Frame):
         self.m_dataViewListCtrl2.Bind(wx.dataview.EVT_DATAVIEW_SELECTION_CHANGED, self.print_sel, id=wx.ID_ANY)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-    def populate_sample_data(self):
-        sample_data = [
-            ("Gmail", "user@gmail.com", "••••••••", 'ieri'),
-            ("Online Banking", "john.doe", "••••••••", 'ieri'),
-            ("GitHub", "dev_user", "••••••••", 'ieri'),
-            ("Social Media", "social_user", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-            ("Work VPN", "j.doe@company", "••••••••", 'ieri'),
-        ]
-
-        for item in sample_data:
-            self.m_dataViewListCtrl2.AppendItem(item)
+    # def populate_grid(self):
+    #     sample_data = [
+    #         ("Gmail", "user@gmail.com", 'ieri'),
+    #         ("Online Banking", "john.doe", 'ieri'),
+    #         ("GitHub", "dev_user", 'ieri'),
+    #         ("Social Media", "social_user", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #         ("Work VPN", "j.doe@company", 'ieri'),
+    #     ]
+    #
+    #     for item in sample_data:
+    #         self.m_dataViewListCtrl2.AppendItem(item)
 
     def update_gauge(self, count):
         if count <= 100:
@@ -165,7 +166,8 @@ class PasswordManager(wx.Frame):
         row_idx = self.m_dataViewListCtrl2.GetSelectedRow()
         title = self.m_dataViewListCtrl2.GetTextValue(row_idx, 0)
         username = self.m_dataViewListCtrl2.GetTextValue(row_idx, 1)
-        password = self.m_dataViewListCtrl2.GetTextValue(row_idx, 2)
+       # password = self.m_dataViewListCtrl2.GetTextValue(row_idx, 2)
+        password = ''
         last_modified = self.m_dataViewListCtrl2.GetTextValue(row_idx, 3)
         self.cred = Credentials(title, username, password, last_modified)
 
@@ -175,14 +177,13 @@ class PasswordManager(wx.Frame):
             self.main_frame.Show()
         self.Destroy()
 
+    def populate_grid(self, token, user):
+        credentials = get_credentials(token, user)
+        if credentials.status_code == 200:
+            cred_unpacked = credentials.json()['credentials']
+            for cred in cred_unpacked:
 
-def main():
-    app = wx.App()
-    main_frame = PasswordManager(parent=None)
-    main_frame.Show()
-
-    app.MainLoop()
+                self.m_dataViewListCtrl2.AppendItem(cred)
 
 
-if __name__ == "__main__":
-    main()
+
