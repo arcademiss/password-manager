@@ -85,3 +85,10 @@ def derive_aes_key(master_password: str, client_key: str, salt: bytes) -> bytes:
         600_000,        # High iteration count
         dklen=32        # 256 bits for AES-256
     )
+
+def encrypt_field(cred:str, key: bytes):
+    cred_bin = bytes.fromhex(cred)
+    cipher = AES.new(key, AES.MODE_EAX)
+    nonce = cipher.nonce
+    ciphertext, tag = cipher.encrypt_and_digest(cred_bin)
+    return nonce, ciphertext

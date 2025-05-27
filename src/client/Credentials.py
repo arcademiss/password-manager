@@ -30,5 +30,10 @@ class Credentials:
     def get_last_modified(self):
         return self.last_modified
 
+    def get_nonce(self):
+        return self.nonce
+
+    def set_nonce(self, nonce):
+        self.nonce = nonce
     def __repr__(self):
         return f"Credentials(title='{self.title}', username='{self.username}')"
