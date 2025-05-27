@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import requests
 ###########################################################################
 ## Python code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 ## http://www.wxformbuilder.org/
@@ -123,6 +123,7 @@ class PasswordManager(wx.Frame):
         self.m_button3.Bind(wx.EVT_BUTTON, self.add_credential)
         self.m_button4.Bind(wx.EVT_BUTTON, self.edit_credential)
         self.m_button5.Bind(wx.EVT_BUTTON, self.delete_credential)
+        self.m_button6.Bind(wx.EVT_BUTTON, self.send_credentials)
 
     def update_gauge(self, count):
         if count <= 100:
@@ -151,7 +152,7 @@ class PasswordManager(wx.Frame):
 
         elif event.GetKeyCode() == 3:  # C
             self.m_staticText4.SetLabel("Copied Password")
-            pyperclip.copy(decrypt_field(self.cred.get_password().hex(), self.cred.get_nonce().hex(), self.key).decode('utf-8'))
+            pyperclip.copy(decrypt_field(self.cred.get_password(), self.cred.get_nonce(), self.key).decode('utf-8'))
             self.update_gauge(1)  # Start gauge progress
             self.timer = Timer(10, clear_clipboard)
             self.timer.start()
@@ -187,14 +188,14 @@ class PasswordManager(wx.Frame):
             for cred in cred_unpacked:
                 nonce = cred[5]
                 service = cred[2]
-                username = decrypt_field(cred[3], nonce, key).decode('utf-8')
+                username = cred[3]
                 password = cred[4]
                 last_modified = cred[6]
                 credential = Credentials(service, username, password, last_modified, nonce)
 
 
                 self.m_dataViewListCtrl2.AppendItem([credential.get_title(), credential.get_username(),
-                                                      credential.get_last_modified()])
+                                                      credential.get_last_modified().split('T')[0]])
 
                 self.cred_list.append(credential)
 
@@ -239,5 +240,45 @@ class PasswordManager(wx.Frame):
         # Optional: set status message
         self.m_staticText4.SetLabel("Credential deleted.")
 
+    def send_credentials(self, event):
+        if not self.token:
+            self.m_staticText4.SetLabel("No token found. Please log in again.")
+            return
+
+        data = []
+        for cred in self.cred_list:
+            print(cred)
+            print(cred.get_password(), type(cred.get_password()))
+            print(cred.get_nonce(), type(cred.get_nonce()))
+            data.append({
+                "title": cred.get_title(),
+                "username": cred.get_username(),
+                "password": cred.get_password(),
+                "nonce": cred.get_nonce(),
+                "last_modified": str(cred.get_last_modified())
+            })
+
+        try:
+            response = requests.post(
+                "http://127.0.0.1:8000/sync",
+                headers={
+                    "Authorization": f"Bearer {self.token}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "user": self.user,
+                    "creds": data
+                }
+            )
+
+            if response.status_code == 200:
+                self.m_staticText4.SetLabel("Credentials synced successfully.")
+            else:
+                self.m_staticText4.SetLabel(f"Sync failed: {response.status_code}")
+                print("Response:", response.text)
+
+        except Exception as e:
+            self.m_staticText4.SetLabel("Error syncing credentials.")
+            print("Sync error:", e)
 
 

@@ -139,7 +139,7 @@ class CredentialForm ( wx.Frame ):
 
         nonce, password_encrypted = encrypt_field(password.encode('utf-8').hex(), self.parent.key)
 
-        credential = Credentials(title,user,password_encrypted, datetime.now(),nonce)
+        credential = Credentials(title,user,password_encrypted.hex(), datetime.now().date(),nonce.hex())
         print(credential)
         self.parent.cred_list.append(credential)
         self.Destroy()

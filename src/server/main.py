@@ -25,7 +25,20 @@ DB_CONNECT_STR = f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} connect_timeou
                  f"user={DB_USER} "
 
 
+from fastapi import Body
+from pydantic import BaseModel
+from typing import List
 
+
+class CredentialIn(BaseModel):
+    title: str
+    username: str
+    password: str  # Already encrypted hex
+    nonce: str     # Hex string
+    last_modified: str  # ISO 8601 string, e.g. "2025-05-27T14:30:00"
+class SyncPayload(BaseModel):
+    user: str
+    creds: List[CredentialIn]
 app = FastAPI()
 
 security = HTTPBearer()
@@ -150,8 +163,47 @@ async def get_cred(
         print("Unexpected Error:", e)  # Debugging
         raise
 
+@app.post("/sync")
+async def sync_credentials(
+    payload: SyncPayload,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    try:
+        token = credentials.credentials
+        jwt_payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
 
+        if jwt_payload.get("user") != payload.user:
+            raise HTTPException(status_code=403, detail="Token does not match user")
 
+        with psycopg.connect(DB_CONNECT_STR) as conn:
+            with conn.cursor() as curr:
+                curr.execute("SELECT uuid FROM users WHERE username = %s", (payload.user,))
+                result = curr.fetchone()
+                if not result:
+                    raise HTTPException(status_code=404, detail="User not found")
+                user_uuid = result[0]
+
+                curr.execute("DELETE FROM credentials WHERE user_uuid = %s", (user_uuid,))
+
+                for cred in payload.creds:
+                    curr.execute("""
+                        INSERT INTO credentials (user_uuid, title, username, password, nonce, last_modified)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (
+                        user_uuid,
+                        cred.title,
+                        cred.username,
+                        cred.password,
+                        cred.nonce,
+                        cred.last_modified
+                    ))
+                conn.commit()
+
+        return {"status": "Credentials synchronized"}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
