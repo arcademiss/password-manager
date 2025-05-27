@@ -1,9 +1,10 @@
 class Credentials:
-    def __init__(self, title, username, password, last_modified):
+    def __init__(self, title, username, password, last_modified, nonce):
         self.title = title
         self.username = username
         self.password = password
         self.last_modified = last_modified
+        self.nonce = nonce
 
     def set_username(self, username):
         self.username = username
@@ -29,5 +30,10 @@ class Credentials:
     def get_last_modified(self):
         return self.last_modified
 
+    def get_nonce(self):
+        return self.nonce
+
+    def set_nonce(self, nonce):
+        self.nonce = nonce
     def __repr__(self):
         return f"Credentials(title='{self.title}', username='{self.username}')"
